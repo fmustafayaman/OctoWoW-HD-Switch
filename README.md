@@ -167,3 +167,5 @@ or use it with other servers without permission.
 HD Switch is a fan-made tool. It is not affiliated with OctoWoW, Project Reforged,
 Twow Raid Visuals or Blizzard Entertainment. World of Warcraft is a trademark of
 Blizzard Entertainment.
+
+Ai agents are used in project.
