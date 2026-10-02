@@ -23,6 +23,10 @@ the world, spell effects and sounds all switch live.
 - **Character select and character create:** an **HD: On / Off** button at the top of
   both screens. On character create your race, sex, skin, face and hair are kept.
 - **Remembers your choice:** it applies from the next game start, login screen included.
+- **Fixes white textures:** some HD pack files are missing their smallest mip level,
+  which made the cast bar and other textures turn white after a resolution change
+  (or any time the game re-uploads textures). HD Switch completes them in memory;
+  the pack files are not changed.
 - **2× character skins kept:** if your setup uses the Project Reforged HD character
   textures with VanillaHelpers' high-resolution skins, both the HD and the original
   look render correctly.
@@ -32,7 +36,7 @@ the world, spell effects and sounds all switch live.
 
 | | |
 |---|---|
-| Server | **OctoWoW** (any realm; a direct connection or a local login proxy such as octoproxy) |
+| Server | **OctoWoW** |
 | Client | The OctoWoW client: World of Warcraft **1.12.1, build 5875** |
 | DLL loader | [VanillaFixes](https://github.com/hannesmann/vanillafixes) (loads the DLLs listed in `dlls.txt`) |
 | HD packs | Installed as `Data\patch-<letter>.mpq` (see the tested packs below) |
@@ -74,7 +78,7 @@ transmogfix, UnitXP_SP3, VanillaMultiMonitorFix.
 
 ## Installation
 
-1. Download `OctoWoW-HD-Switch-v1.1.0.zip` from
+1. Download the latest `OctoWoW-HD-Switch-v*.zip` from
    [Releases](../../releases) and extract it.
 2. Copy `mods\HDToggle.dll` into your game's `mods` folder (the folder VanillaFixes
    loads DLLs from).
@@ -131,6 +135,22 @@ Your choice is saved in `mods\HDToggle.ini`.
 Remove the `mods/HDToggle.dll` line from `dlls.txt`. Then delete `mods\HDToggle.dll`,
 `mods\HDToggle.ini`, `mods\HDToggle.log` and `Interface\AddOns\HDSwitch`. Your HD packs
 are not changed by HD Switch; they stay installed exactly as they were.
+
+## Changelog
+
+**1.1.1**
+- Fixed a crash when toggling packs in the game (game objects such as campfires and
+  chests were rebuilt with a wrong call into the game)
+- Fixed white textures (cast bar border and others) after a resolution change or a
+  toggle, caused by HD pack files with an incomplete mip chain
+- Characters and game objects are now rebuilt before the world reloads, and every
+  object is checked again right before it is touched
+
+**1.1.0**
+- First release
+
+To update: replace `mods\HDToggle.dll` and the `Interface\AddOns\HDSwitch` folder,
+then restart the game.
 
 ## License
 
