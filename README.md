@@ -138,6 +138,11 @@ are not changed by HD Switch; they stay installed exactly as they were.
 
 ## Changelog
 
+**1.1.2**
+- Fixed a crash in character skin compositing right after turning packs off: the
+  game's texture cache kept the old HD size of re-decoded face and skin textures.
+  The outdated info is now dropped and recomputed by the game.
+
 **1.1.1**
 - Fixed a crash when toggling packs in the game (game objects such as campfires and
   chests were rebuilt with a wrong call into the game)
