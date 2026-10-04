@@ -1,0 +1,60 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "OctoWoW HD Installer",
+  "version": "1.0.0",
+  "identifier": "st.octowow.hdinstaller",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "OctoWoW HD Installer",
+        "width": 980,
+        "height": 680,
+        "minWidth": 860,
+        "minHeight": 600,
+        "resizable": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis",
+      "app",
+      "dmg"
+    ],
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      },
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      }
+    },
+    "shortDescription": "OctoWoW HD Switch installer",
+    "longDescription": "Installs and updates OctoWoW HD Switch and its optional packs."
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFDRjBFNzgxN0Y2RjUxQUIKUldTclVXOS9nZWZ3ckozTm5kU3BwdlowUzVmeksxY1kxMDBrSGZ2RWRUUmN4ZWtQaXZtZ1lGU24K",
+      "endpoints": [
+        "https://github.com/fmustafayaman/OctoWoW-HD-Switch/releases/latest/download/latest.json"
+      ]
+    }
+  }
+}

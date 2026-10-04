@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "permissions of the installer window",
+  "windows": ["main"],
+  "permissions": ["core:default", "dialog:allow-open", "updater:default", "process:allow-restart", "opener:allow-open-url"]
+}

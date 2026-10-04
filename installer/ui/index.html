@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OctoWoW HD Installer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="frame">
+  <header class="top">
+    <img class="mark" src="logo-128.png" alt="" width="44" height="44">
+    <div class="title">
+      <h1>OctoWoW HD</h1>
+      <p class="sub" id="release-line">Checking for the latest release…</p>
+    </div>
+    <button class="ghost" id="notes-btn" type="button" aria-expanded="false" aria-controls="notes">Release notes</button>
+  </header>
+
+  <div class="banner" id="self-update" hidden>
+    <span id="self-update-text"></span>
+    <button class="gold small" id="self-update-btn" type="button">Update installer</button>
+  </div>
+
+  <div class="banner warn" id="game-open" hidden role="status">
+    The game is running. Close WoW before installing or removing anything; the installer waits and checks again on its own.
+  </div>
+
+  <div class="banner warn" id="conflict" hidden role="status"></div>
+
+  <section class="folder" aria-labelledby="folder-h">
+    <h2 id="folder-h">Game folder</h2>
+    <div class="folder-row">
+      <code id="wow-dir" class="path">Not chosen</code>
+      <button class="ghost" id="pick" type="button">Choose folder</button>
+    </div>
+    <p class="hint" id="folder-hint">Pick the folder that contains WoW.exe and the Data folder.</p>
+  </section>
+
+  <main id="list" aria-live="polite"></main>
+
+  <footer class="foot">
+    <label class="nsfw-toggle">
+      <input type="checkbox" id="nsfw">
+      <span>Show 18+ content (I am 18 or older)</span>
+    </label>
+    <span class="ver" id="app-ver"></span>
+  </footer>
+</div>
+
+<aside class="notes" id="notes" hidden>
+  <div class="notes-head">
+    <h2>Release notes</h2>
+    <button class="ghost small" id="notes-close" type="button">Close</button>
+  </div>
+  <div id="notes-body" class="notes-body"></div>
+</aside>
+
+<template id="row-tpl">
+  <article class="row">
+    <div class="row-main">
+      <h3 class="row-name"></h3>
+      <p class="row-desc"></p>
+      <p class="row-credit"></p>
+    </div>
+    <div class="row-side">
+      <span class="badge"></span>
+      <div class="actions"></div>
+    </div>
+    <div class="bar" hidden><div class="bar-fill"></div><span class="bar-text"></span></div>
+    <p class="row-error" hidden role="alert"></p>
+  </article>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>

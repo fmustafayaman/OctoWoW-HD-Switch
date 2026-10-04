@@ -27,9 +27,12 @@ the world, spell effects and sounds all switch live.
   which made the cast bar and other textures turn white after a resolution change
   (or any time the game re-uploads textures). HD Switch completes them in memory;
   the pack files are not changed.
-- **2× character skins kept:** if your setup uses the Project Reforged HD character
-  textures with VanillaHelpers' high-resolution skins, both the HD and the original
-  look render correctly.
+- **2× and 4× character skins:** works with VanillaHelpers' high-resolution skins. When
+  the game starts, HD Switch measures each pack's skin resolution and sizes the skin
+  canvas for the largest one, so a 4× skin pack works next to 2× packs. Skin parts in
+  another resolution are scaled to fit their place on the body.
+- **Works with OctoWoW's fallback login addresses:** a bare IP in `realmlist.wtf` is
+  accepted as long as the selected realm is one of OctoWoW's.
 - **Key bindings and slash commands.**
 
 ## Requirements
@@ -78,6 +81,25 @@ transmogfix, UnitXP_SP3, VanillaMultiMonitorFix.
 
 ## Installation
 
+### With the installer (recommended)
+
+Download **OctoWoW HD Installer** from [Releases](../../releases):
+`OctoWoW-HD-Installer_*_Windows-x64-setup.exe` for Windows, `OctoWoW-HD-Installer_*_macOS-arm64.dmg`
+for macOS (Apple Silicon).
+
+It finds your OctoWoW folder (or lets you pick it), then installs, updates and removes
+HD Switch and the [optional packs](#optional-packs) with one click. Every file is checked
+against its SHA-256 before it is put in place, nothing is changed while the game is
+running, and any file it replaces is backed up and restored when you remove the pack.
+The installer updates itself, too.
+
+The installer is not code-signed yet:
+- **Windows:** SmartScreen says "Windows protected your PC". Click **More info**, then
+  **Run anyway**.
+- **macOS:** right-click the app, choose **Open**, then **Open** again.
+
+### By hand
+
 1. Download the latest `OctoWoW-HD-Switch-v*.zip` from
    [Releases](../../releases) and extract it.
 2. Copy `mods\HDToggle.dll` into your game's `mods` folder (the folder VanillaFixes
@@ -110,6 +132,30 @@ applied as soon as you are in the world.
 
 Your choice is saved in `mods\HDToggle.ini`.
 
+## Optional packs
+
+These are **modified versions of other people's work**. All credit for the models and
+textures goes to their authors; the changes listed below are the only parts made for
+HD Switch. Please support the original projects.
+
+| Pack | Based on | What was changed |
+|---|---|---|
+| **Female models** (`Data\Patch-F.mpq`) | *A Little Extra for Females*, **Less Thicc Version** by **Deezhugs**, built on *A Little Extra* by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | Night Elf and Human heads re-mapped to OctoWoW's HD face textures (the originals were mapped for another texture set and looked broken). High Elves get OctoWoW's original eye glow back. Troll models unchanged. |
+| **Invisible tree fix** (`Data\Patch-H.mpq`) | Seven tree models from **Project Reforged** *Patch-D Doodads* by **Stormhand81** and contributors | The models had no vertex weights, so the game drew nothing but still blocked your way (Durotar, Westfall, Redridge, Silverpine, Duskwood). Each vertex gets full weight on the model's single bone; nothing else changed. |
+| **Nude skins, 18+** (`Data\Patch-Y.mpq`) | *A Little Extra Retextured* by **Necropheus**, upscaled for HD Reforged | The torso and pelvis parts of Forest Troll skin color 4 were missing (the HD underwear showed through with a different chest color). They were rebuilt from the same pack's skin texture. |
+
+The female models replace those of Project Reforged's *Patch-L (A Little Extra)*. If you
+have `patch-L.mpq` installed, remove it: as a later letter it would load over Patch-F.
+
+**Project Reforged** (<https://projectreforged.github.io/>) is made by **Stormhand81**
+with **Watchers3D**, **Appletrey** (Classiic HD), **Isfir** (VanillaHelpers), **Vish**
+(Faithful Upscale), **Bibsan / Space_slam** and **Kraulspine**; Patch-A builds on
+**Falarson**'s work, updated by **Oran1**. *A Little Extra* thread:
+<https://forum.turtlecraft.gg/viewtopic.php?t=12120>.
+
+**To the authors:** if you would like your work removed from these packs, or credited
+differently, please open an issue and it will be done right away.
+
 ## Troubleshooting
 
 - **No minimap button / "HDToggle.dll is not loaded":** check that `mods/HDToggle.dll` is
@@ -132,11 +178,22 @@ Your choice is saved in `mods\HDToggle.ini`.
 
 ## Uninstall
 
+With the installer: click **Remove** next to each pack.
+
+By hand:
+
 Remove the `mods/HDToggle.dll` line from `dlls.txt`. Then delete `mods\HDToggle.dll`,
 `mods\HDToggle.ini`, `mods\HDToggle.log` and `Interface\AddOns\HDSwitch`. Your HD packs
 are not changed by HD Switch; they stay installed exactly as they were.
 
 ## Changelog
+
+**1.2.0**
+- Works with OctoWoW's fallback login addresses (a bare IP in `realmlist.wtf`).
+- 4× character skins: the skin canvas is sized for the highest-resolution skin pack.
+- New: OctoWoW HD Installer for Windows and macOS.
+- New optional packs: female models, invisible tree fix, nude skins (18+). See
+  [Optional packs](#optional-packs) for credits.
 
 **1.1.2**
 - Fixed a crash in character skin compositing right after turning packs off: the
@@ -163,6 +220,9 @@ Copyright © 2026 Mustafa Yaman. All rights reserved.
 
 You may download and use HD Switch on OctoWoW. You may not redistribute it, modify it,
 or use it with other servers without permission.
+
+This license covers HD Switch and the installer only. The optional packs contain other
+people's work under their own terms; see [Optional packs](#optional-packs).
 
 HD Switch is a fan-made tool. It is not affiliated with OctoWoW, Project Reforged,
 Twow Raid Visuals or Blizzard Entertainment. World of Warcraft is a trademark of
