@@ -5,7 +5,7 @@ usage: make_release.py <release folder> <tag> [notes.md]
 
 Expected in the folder:
   OctoWoW-HD-Switch-v<x>/      the HD Switch release (mods/, Interface/)
-  Patch-F.mpq, Patch-H.mpq     female models, invisible tree fix
+  Patch-F.mpq, Patch-H.mpq     female models, OctoWoW HD fixes
   patch-O.mpq, patch-Z.mpq     Twow Raid Visuals with OctoWoW's tables, DBC merge
   Patch-Y.mpq                  nude skins (18+)
   project-reforged.json        {letter: {url, sha256, size}} of the Project Reforged packs
@@ -66,7 +66,8 @@ components = [
         "id": "packs", "name": "OctoWoW HD packs", "version": PACKS_VER,
         "description": "The supported setup, the same files byte for byte for everyone: Project Reforged "
                        "A, B, C, D, E, G, I, M, P, S and T (downloaded from Project Reforged), Twow Raid "
-                       "Visuals, slimmer female models, the invisible tree fix and the merged game tables.",
+                       "Visuals, slimmer female models, fixes for defects in the packs (invisible trees, white "
+                       "surfaces, an invisible creature) and the merged game tables.",
         "credits": "Project Reforged by Stormhand81 and contributors. Twow Raid Visuals by MarcelineVQ. "
                    "Female models: A Little Extra for Females, Less Thicc Version by Deezhugs, on "
                    "Watchers3D's A Little Extra (High Elf animations by Starrfury). Full credits in the README.",
@@ -100,9 +101,10 @@ legacy = [
      "description": "Slimmer female models for Night Elf, Human, Troll and High Elf, fitted to the HD textures.",
      "credits": "A Little Extra for Females, Less Thicc Version by Deezhugs, on Watchers3D's A Little Extra.",
      "files": [own["data/patch-f.mpq"]]},
-    {"id": "trees", "name": "Invisible tree fix", "version": "1.0.0",
-     "description": "Fixes invisible trees that block your way. Needs Project Reforged's pack D.",
-     "credits": "Tree models from Project Reforged Patch-D by Stormhand81 and contributors.",
+    {"id": "trees", "name": "OctoWoW HD fixes", "version": PACKS_VER,
+     "description": "Fixes for defects in the Project Reforged packs: invisible trees, white surfaces, "
+                    "an invisible creature. Needs Project Reforged's packs A, C, D and G.",
+     "credits": "Models from Project Reforged by Stormhand81 and contributors.",
      "files": [own["data/patch-h.mpq"]]},
     components[2],
 ]

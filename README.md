@@ -71,7 +71,7 @@ byte for byte. The installer checks every file's SHA-256.
 | `patch-O.mpq` | Twow Raid Visuals with OctoWoW's own spell tables | 1.4.18 | this repository's releases |
 | `patch-Z.mpq` | Merged game tables (DBC) of the packs above | – | this repository's releases |
 | `Patch-F.mpq` | Female models (see [the packs we modified](#packs-we-modified)) | 1.0.0 | this repository's releases |
-| `Patch-H.mpq` | Invisible tree fix (see [the packs we modified](#packs-we-modified)) | 1.0.0 | this repository's releases |
+| `Patch-H.mpq` | OctoWoW HD fixes (see [OctoWoW HD fixes](#octowow-hd-fixes)) | 1.2.2 | this repository's releases |
 | `Patch-Y.mpq` | Nude skins, 18+, **optional** | 1.0.0 | this repository's releases |
 
 The Project Reforged packs are downloaded **from Project Reforged's own server**, not
@@ -154,7 +154,7 @@ HD Switch. Please support the original projects.
 | Pack | Based on | What was changed |
 |---|---|---|
 | **Female models** (`Data\Patch-F.mpq`) | *A Little Extra for Females*, **Less Thicc Version** by **Deezhugs**, built on *A Little Extra* by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | Night Elf and Human heads re-mapped to OctoWoW's HD face textures (the originals were mapped for another texture set and looked broken). High Elves get OctoWoW's original eye glow back. Troll models unchanged. |
-| **Invisible tree fix** (`Data\Patch-H.mpq`) | Seven tree models from **Project Reforged** *Patch-D Doodads* by **Stormhand81** and contributors | The models had no vertex weights, so the game drew nothing but still blocked your way (Durotar, Westfall, Redridge, Silverpine, Duskwood). Each vertex gets full weight on the model's single bone; nothing else changed. |
+| **OctoWoW HD fixes** (`Data\Patch-H.mpq`) | Models from **Project Reforged** *Patch-A, C, D and G*, and original game models | Corrected copies of the HD pack files listed in [OctoWoW HD fixes](#octowow-hd-fixes) below; nothing else changed. |
 | **Nude skins, 18+** (`Data\Patch-Y.mpq`) | *A Little Extra Retextured* by **Necropheus**, upscaled for HD Reforged | The torso and pelvis parts of Forest Troll skin color 4 were missing (the HD underwear showed through with a different chest color). They were rebuilt from the same pack's skin texture. |
 
 `patch-O.mpq` is **Twow Raid Visuals 1.4.18** by **MarcelineVQ**
@@ -164,6 +164,34 @@ merges the game tables of all the packs above, so no pack's table hides another'
 
 The female models replace those of Project Reforged's *Patch-L (A Little Extra)*, which
 is not part of the supported setup: as a later letter it would load over Patch-F.
+
+### OctoWoW HD fixes
+
+Every model, building and terrain file of the supported setup was checked with the game's own
+loading rules (taken from `WoW.exe`): which model versions it accepts, how it reads a texture
+name, and what it does when a texture is missing. Everything below showed up in the game and is
+fixed in `Patch-H.mpq`. Each fix changes only the broken part; where the missing piece exists
+nowhere, the original game's model is used.
+
+| What you saw | Files | Cause | Fix |
+|---|---|---|---|
+| Invisible trees that still block your way (Durotar, Westfall, Redridge, Silverpine, Duskwood) | 7 tree models (D) | No vertex weights | Full weight on the model's single bone |
+| White tree canopies, stumps and a rock (Redridge, Duskwood, Elwynn, Durotar) | 8 models (D) | Damaged texture names (a stray zero byte, a missing terminator) | The correct name of the texture that is already in the pack |
+| White glow on the Horde PvP cloth helms | 36 models (G) | The glow texture is not in the pack | The texture the original helm uses there |
+| White patch on the bat taxi | `BatTaxi.m2` (C) | Typo: `BatSkin000002` | `BatSkin02`, as in the original model |
+| White eye glow on the High Elf NPC models | 2 models (A) | Typo: `EyeGlowBlue1` | The correct name |
+| White surfaces on Gorth, the Worgen caster and a rug in the Night Elf hunters' lodge | 3 models (C, D) | No extension, `.bpl`, `… copy.blp` | The correct names |
+| Invisible undead horse creatures | `UndeadHorse.m2` (C) | A WotLK model (version 264) without its `.skin` files; the game rejects it | The original model; the HD texture fits it |
+| White trunk on a Moonglade tree | `moongladetree07.m2` (D) | The trunk texture is not in the pack | The original model; the HD textures fit it |
+| White parts on the Northshire Abbey gates | `abbeygate01`, `abbeygate02` (D) | Three textures are not in the pack | The original gates |
+| White smear on the Seal of Righteousness impact; white squares in the sparkles of the Swamp of Sorrows huts, in forge smoke and in the war raptor's exhaust | P, D, C | The texture is in no pack | A fully transparent texture: those parts are not drawn. Every use was checked to be a blended one, so nothing turns black |
+
+What the check still lists is harmless: models that nothing in the game uses, texture slots no
+surface uses, and one brazier inside the Night Elf hunters' lodge that is not drawn (a WotLK
+model) but changes nothing else.
+
+**With HD Switch:** when you turn a pack off, the fixes for that pack's files are off too, so
+those files fall back exactly like the rest of the pack.
 
 **Project Reforged** (<https://projectreforged.github.io/>) is made by **Stormhand81**
 with **Watchers3D**, **Appletrey** (Classiic HD), **Isfir** (VanillaHelpers), **Vish**
@@ -206,6 +234,12 @@ Remove the `mods/HDToggle.dll` line from `dlls.txt`. Then delete `mods\HDToggle.
 are not changed by HD Switch; they stay installed exactly as they were.
 
 ## Changelog
+
+**1.2.2**
+- The invisible tree fix is now **OctoWoW HD fixes** (`Patch-H`): every defect a check of all
+  models, buildings and terrain in the supported setup found, fixed (see
+  [OctoWoW HD fixes](#octowow-hd-fixes)).
+- HD Switch 1.2.1: turning a pack off also turns off the fixes for that pack's files.
 
 **1.2.1**
 - One supported setup: the installer offers the exact OctoWoW HD pack set HD Switch is
