@@ -49,30 +49,40 @@ The DLL checks the game build before it does anything. On a client that is not 1
 (5875), or if another mod has already changed the same game code, it stays inactive and
 the addon tells you why.
 
-## Tested with
+## Supported setup
 
-**HD packs**
+HD Switch is tested with one exact set of packs, and that set is the only one it is
+supported with: the **OctoWoW HD packs**. Everyone who installs them gets the same files,
+byte for byte. The installer checks every file's SHA-256.
 
-| File | Pack | Version |
-|---|---|---|
-| `patch-A.mpq` | Project Reforged – Player Characters & NPCs | 5.5.0 |
-| `patch-B.mpq` | Project Reforged – Buildings | 5.0.0 |
-| `patch-C.mpq` | Project Reforged – Creatures | 5.5.1 |
-| `patch-D.mpq` | Project Reforged – Doodads | 5.4.2 |
-| `patch-E.mpq` | Project Reforged – Environment | 5.4.1 |
-| `patch-G.mpq` | Project Reforged – Gear & Weapons | 5.4.1 |
-| `patch-I.mpq` | Project Reforged – Interface | 5.3.0 |
-| `patch-M.mpq` | Project Reforged – Maps & Loading Screens | 5.4.2 |
-| `patch-S.mpq` | Project Reforged – Sounds & Music | 5.3.4 |
-| `patch-T.mpq` | Project Reforged – HD Character Textures & Gear (Standard) | 5.5.0 |
-| `patch-O.mpq` | Twow Raid Visuals | 1.4.18 |
-| `patch-Z.mpq` | DBC merge patch (combines the packs' tables) | handled automatically, cannot be turned off |
+| File | Pack | Version | Comes from |
+|---|---|---|---|
+| `patch-A.mpq` | Project Reforged – Player Characters & NPCs | 5.5.0 | Project Reforged |
+| `patch-B.mpq` | Project Reforged – Buildings | 5.0.0 | Project Reforged |
+| `patch-C.mpq` | Project Reforged – Creatures | 5.5.1 | Project Reforged |
+| `patch-D.mpq` | Project Reforged – Doodads | 5.4.2 | Project Reforged |
+| `patch-E.mpq` | Project Reforged – Environment | 5.4.1 | Project Reforged |
+| `patch-G.mpq` | Project Reforged – Gear & Weapons | 5.4.1 | Project Reforged |
+| `patch-I.mpq` | Project Reforged – Interface | 5.3.0 | Project Reforged |
+| `patch-M.mpq` | Project Reforged – Maps & Loading Screens | 5.4.2 | Project Reforged |
+| `patch-P.mpq` | Project Reforged – Particle Effects for Spells | 5.5.0 | Project Reforged |
+| `patch-S.mpq` | Project Reforged – Sounds & Music | 5.3.4 | Project Reforged |
+| `patch-T.mpq` | Project Reforged – HD Character Textures & Gear (Standard) | 5.5.0 | Project Reforged |
+| `patch-O.mpq` | Twow Raid Visuals with OctoWoW's own spell tables | 1.4.18 | this repository's releases |
+| `patch-Z.mpq` | Merged game tables (DBC) of the packs above | – | this repository's releases |
+| `Patch-F.mpq` | Female models (see [the packs we modified](#packs-we-modified)) | 1.0.0 | this repository's releases |
+| `Patch-H.mpq` | Invisible tree fix (see [the packs we modified](#packs-we-modified)) | 1.0.0 | this repository's releases |
+| `Patch-Y.mpq` | Nude skins, 18+, **optional** | 1.0.0 | this repository's releases |
 
-Project Reforged: <https://projectreforged.github.io/> · Twow Raid Visuals:
-<https://github.com/MarcelineVQ/twow-raid-visuals>
+The Project Reforged packs are downloaded **from Project Reforged's own server**, not
+re-hosted here; only the files that do not exist upstream in this exact form are part of
+the releases. If Project Reforged publishes a new version of one of them, the installer
+stops and says so instead of installing a version HD Switch was not tested with.
 
-Other letter packs (`patch-<letter>.mpq`) are listed and can be toggled too, but only
-the packs above have been tested.
+**Other packs.** HD Switch can be installed on its own and it lists and toggles any
+`patch-<letter>.mpq`, but with other packs or other versions there is no guarantee that
+everything looks and works right, and problems that only happen with them cannot be
+fixed here. The installer lists any extra letter packs in your Data folder.
 
 **Other mods loaded at the same time:** VanillaFixes, VanillaHelpers, nampower,
 transmogfix, UnitXP_SP3, VanillaMultiMonitorFix.
@@ -88,7 +98,10 @@ Download **OctoWoW HD Installer** from [Releases](../../releases):
 for macOS (Apple Silicon).
 
 It finds your OctoWoW folder (or lets you pick it), then installs, updates and removes
-HD Switch and the [optional packs](#optional-packs) with one click. Every file is checked
+HD Switch, the [OctoWoW HD packs](#supported-setup) and the optional 18+ skins with one click.
+HD Switch can also be installed on its own. Packs you already have in the right version
+are not downloaded again, an interrupted download continues where it stopped, and
+**Remove** only deletes files the installer put there. Every file is checked
 against its SHA-256 before it is put in place, nothing is changed while the game is
 running, and any file it replaces is backed up and restored when you remove the pack.
 The installer updates itself, too.
@@ -132,9 +145,9 @@ applied as soon as you are in the world.
 
 Your choice is saved in `mods\HDToggle.ini`.
 
-## Optional packs
+## Packs we modified
 
-These are **modified versions of other people's work**. All credit for the models and
+`Patch-F`, `Patch-H` and `Patch-Y` are **modified versions of other people's work**. All credit for the models and
 textures goes to their authors; the changes listed below are the only parts made for
 HD Switch. Please support the original projects.
 
@@ -144,8 +157,13 @@ HD Switch. Please support the original projects.
 | **Invisible tree fix** (`Data\Patch-H.mpq`) | Seven tree models from **Project Reforged** *Patch-D Doodads* by **Stormhand81** and contributors | The models had no vertex weights, so the game drew nothing but still blocked your way (Durotar, Westfall, Redridge, Silverpine, Duskwood). Each vertex gets full weight on the model's single bone; nothing else changed. |
 | **Nude skins, 18+** (`Data\Patch-Y.mpq`) | *A Little Extra Retextured* by **Necropheus**, upscaled for HD Reforged | The torso and pelvis parts of Forest Troll skin color 4 were missing (the HD underwear showed through with a different chest color). They were rebuilt from the same pack's skin texture. |
 
-The female models replace those of Project Reforged's *Patch-L (A Little Extra)*. If you
-have `patch-L.mpq` installed, remove it: as a later letter it would load over Patch-F.
+`patch-O.mpq` is **Twow Raid Visuals 1.4.18** by **MarcelineVQ**
+(<https://github.com/MarcelineVQ/twow-raid-visuals>) with OctoWoW's own spell, spell visual,
+spell icon, sound and creature model tables, so OctoWoW's spells keep working. `patch-Z.mpq`
+merges the game tables of all the packs above, so no pack's table hides another's.
+
+The female models replace those of Project Reforged's *Patch-L (A Little Extra)*, which
+is not part of the supported setup: as a later letter it would load over Patch-F.
 
 **Project Reforged** (<https://projectreforged.github.io/>) is made by **Stormhand81**
 with **Watchers3D**, **Appletrey** (Classiic HD), **Isfir** (VanillaHelpers), **Vish**
@@ -178,7 +196,8 @@ differently, please open an issue and it will be done right away.
 
 ## Uninstall
 
-With the installer: click **Remove** next to each pack.
+With the installer: click **Remove** next to each part. Packs you had before the
+installer (for example Project Reforged packs you downloaded yourself) are left in place.
 
 By hand:
 
@@ -188,12 +207,21 @@ are not changed by HD Switch; they stay installed exactly as they were.
 
 ## Changelog
 
+**1.2.1**
+- One supported setup: the installer offers the exact OctoWoW HD pack set HD Switch is
+  tested with. Project Reforged packs are downloaded from Project Reforged and checked
+  byte for byte; `patch-O`, `patch-Z`, `Patch-F` and `Patch-H` come from this release.
+- HD Switch can still be installed on its own (no guarantee with other packs).
+- Installer 1.1.0: resumes interrupted downloads, skips packs you already have, checks
+  free disk space, lists packs that are not part of the supported setup, and only
+  removes files it put there. HD Switch itself is unchanged (1.2.0).
+
 **1.2.0**
 - Works with OctoWoW's fallback login addresses (a bare IP in `realmlist.wtf`).
 - 4× character skins: the skin canvas is sized for the highest-resolution skin pack.
 - New: OctoWoW HD Installer for Windows and macOS.
 - New optional packs: female models, invisible tree fix, nude skins (18+). See
-  [Optional packs](#optional-packs) for credits.
+  [Packs we modified](#packs-we-modified) for credits.
 
 **1.1.2**
 - Fixed a crash in character skin compositing right after turning packs off: the
@@ -222,7 +250,7 @@ You may download and use HD Switch on OctoWoW. You may not redistribute it, modi
 or use it with other servers without permission.
 
 This license covers HD Switch and the installer only. The optional packs contain other
-people's work under their own terms; see [Optional packs](#optional-packs).
+people's work under their own terms; see [Packs we modified](#packs-we-modified).
 
 HD Switch is a fan-made tool. It is not affiliated with OctoWoW, Project Reforged,
 Twow Raid Visuals or Blizzard Entertainment. World of Warcraft is a trademark of

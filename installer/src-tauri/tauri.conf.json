@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "OctoWoW HD Installer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "identifier": "st.octowow.hdinstaller",
   "build": {
     "frontendDist": "../ui"
@@ -12,7 +12,7 @@
       {
         "title": "OctoWoW HD Installer",
         "width": 980,
-        "height": 680,
+        "height": 800,
         "minWidth": 860,
         "minHeight": 600,
         "resizable": true,

@@ -1,6 +1,7 @@
 //! OctoWoW HD Installer: installs, updates and removes HD Switch and the optional packs.
 //!
-//! Source of truth: `manifest.json` in the latest GitHub release. It lists every component's
+//! Source of truth: `manifest-v2.json` in the latest GitHub release (`manifest.json` there is for
+//! installer 1.0, which cannot download files hosted elsewhere). It lists every component's
 //! files, their destination in the game folder and their SHA-256. Files are downloaded as
 //! `.hdi-part`, verified, then moved into place; nothing is touched while the game runs.
 
@@ -13,7 +14,17 @@ use tauri::{AppHandle, Emitter};
 
 const REPO: &str = "fmustafayaman/OctoWoW-HD-Switch";
 const UA: &str = concat!("OctoWoW-HD-Installer/", env!("CARGO_PKG_VERSION"));
+const MANIFEST: &str = "manifest-v2.json";
 const STATE_FILE: &str = "mods/octowow-hd-installer.json";
+const HASH_CACHE: &str = "mods/octowow-hd-installer.hashes.json";
+/// Component ids of installer 1.0 (one component per pack) and the files they put in place.
+const LEGACY: &[(&str, &[&str])] = &[
+    ("hdswitch", &["mods/HDToggle.dll", "Interface/AddOns/HDSwitch/HDSwitch.toc",
+                   "Interface/AddOns/HDSwitch/HDSwitch.lua", "Interface/AddOns/HDSwitch/Bindings.xml"]),
+    ("female", &["Data/Patch-F.mpq"]),
+    ("trees", &["Data/Patch-H.mpq"]),
+    ("nude", &["Data/Patch-Y.mpq"]),
+];
 const PART: &str = ".hdi-part";
 const BACKUP: &str = ".hdi-backup";
 
@@ -27,6 +38,9 @@ pub struct ManifestFile {
     pub size: u64,
     #[serde(default)]
     pub url: String,
+    /// who hosts the file, for messages ("Project Reforged"); empty for our own release
+    #[serde(default)]
+    pub source: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -56,6 +70,9 @@ pub struct Manifest {
 struct InstalledState {
     /// component id -> installed version
     components: BTreeMap<String, String>,
+    /// files the installer put in place (dest path); only these are deleted on remove
+    #[serde(default)]
+    placed: std::collections::BTreeSet<String>,
 }
 
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
@@ -180,16 +197,24 @@ fn find_wow_dirs() -> Vec<String> {
     found
 }
 
-/// Files that load over our packs (Project Reforged's patch-L loads after Patch-F).
+/// Letter packs in Data that are not part of the supported setup (OctoWoW's own numbered
+/// patches are not counted).
 #[tauri::command]
-fn conflicts(wow_dir: String) -> Vec<String> {
+fn unsupported_packs(wow_dir: String, manifest: Manifest) -> Vec<String> {
+    let known: Vec<String> = manifest.components.iter().flat_map(|c| c.files.iter())
+        .map(|f| f.dest.replace('\\', "/").to_lowercase()).collect();
     let data = PathBuf::from(&wow_dir).join("Data");
     let Ok(rd) = std::fs::read_dir(&data) else { return Vec::new() };
-    rd.flatten()
+    let mut out: Vec<String> = rd.flatten()
         .filter_map(|e| e.file_name().to_str().map(String::from))
-        .filter(|n| n.eq_ignore_ascii_case("patch-L.mpq"))
-        .map(|n| format!("Data/{n}"))
-        .collect()
+        .filter(|n| {
+            let l = n.to_lowercase();
+            l.len() == 11 && l.starts_with("patch-") && l.ends_with(".mpq") && l.as_bytes()[6].is_ascii_alphabetic()
+        })
+        .filter(|n| !known.contains(&format!("data/{}", n.to_lowercase())))
+        .collect();
+    out.sort();
+    out
 }
 
 // ---------------------------------------------------------------- is the game running
@@ -221,11 +246,13 @@ async fn fetch_manifest() -> Res<Manifest> {
     let c = client()?;
     // development/tests: a manifest on a local server (files next to it)
     if let Ok(base) = std::env::var("HDI_MANIFEST_BASE") {
-        let mut m: Manifest = c.get(format!("{base}/manifest.json")).send().await.map_err(err("manifest"))?
+        let mut m: Manifest = c.get(format!("{base}/{MANIFEST}")).send().await.map_err(err("manifest"))?
             .error_for_status().map_err(err("manifest"))?.json().await.map_err(err("manifest is damaged"))?;
         for comp in &mut m.components {
             for f in &mut comp.files {
-                f.url = format!("{base}/{}", f.asset);
+                if f.url.is_empty() {
+                    f.url = format!("{base}/{}", f.asset);
+                }
             }
         }
         return Ok(m);
@@ -240,13 +267,16 @@ async fn fetch_manifest() -> Res<Manifest> {
     let url_of = |name: &str| -> Option<String> {
         assets.iter().find(|a| a["name"] == name).and_then(|a| a["browser_download_url"].as_str()).map(String::from)
     };
-    let murl = url_of("manifest.json").ok_or("This release has no manifest.json, so it cannot be installed with the installer.")?;
+    let murl = url_of(MANIFEST).ok_or("This release cannot be installed with the installer (it has no manifest).")?;
     let mut m: Manifest = c.get(murl).send().await.map_err(err("manifest"))?
         .error_for_status().map_err(err("manifest"))?
         .json().await.map_err(err("manifest is damaged"))?;
     for comp in &mut m.components {
         for f in &mut comp.files {
-            f.url = url_of(&f.asset).ok_or_else(|| format!("the release has no '{}'", f.asset))?;
+            // files hosted by their authors (e.g. Project Reforged) carry their own URL
+            if f.url.is_empty() {
+                f.url = url_of(&f.asset).ok_or_else(|| format!("the release has no '{}'", f.asset))?;
+            }
         }
     }
     Ok(m)
@@ -263,7 +293,20 @@ fn safe_dest(wow: &Path, dest: &str) -> Res<PathBuf> {
 }
 
 fn read_state(wow: &Path) -> InstalledState {
-    std::fs::read(wow.join(STATE_FILE)).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
+    let mut st: InstalledState =
+        std::fs::read(wow.join(STATE_FILE)).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
+    // installer 1.0 did not record placed files: its components' files were all placed by it
+    for (id, files) in LEGACY {
+        if st.components.contains_key(*id) {
+            st.placed.extend(files.iter().map(|f| f.to_string()));
+        }
+    }
+    st
+}
+
+/// Paths in the game folder are compared without case (Windows and macOS folders ignore it).
+fn is_placed(st: &InstalledState, dest: &str) -> bool {
+    st.placed.iter().any(|d| d.eq_ignore_ascii_case(dest))
 }
 
 fn write_state(wow: &Path, s: &InstalledState) -> Res<()> {
@@ -272,6 +315,81 @@ fn write_state(wow: &Path, s: &InstalledState) -> Res<()> {
         std::fs::create_dir_all(d).map_err(err("mods folder"))?;
     }
     std::fs::write(p, serde_json::to_vec_pretty(s).map_err(err("state"))?).map_err(err("could not save the install state"))
+}
+
+fn free_space(p: &Path) -> Option<u64> {
+    use sysinfo::Disks;
+    let disks = Disks::new_with_refreshed_list();
+    let canon = std::fs::canonicalize(p).ok()?;
+    disks.list().iter()
+        .filter(|d| canon.starts_with(d.mount_point()))
+        .max_by_key(|d| d.mount_point().as_os_str().len())
+        .map(|d| d.available_space())
+}
+
+/// SHA-256 of files in the game folder, remembered by size and modification time, so that a
+/// status check does not read the 14 GB of packs again on every start.
+#[derive(Serialize, Deserialize, Default)]
+struct HashCache {
+    files: BTreeMap<String, CachedHash>,
+    #[serde(skip)]
+    dirty: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+struct CachedHash {
+    size: u64,
+    mtime_s: u64,
+    mtime_ns: u32,
+    sha256: String,
+}
+
+impl HashCache {
+    fn load(wow: &Path) -> Self {
+        std::fs::read(wow.join(HASH_CACHE)).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
+    }
+
+    fn save(&self, wow: &Path) {
+        if self.dirty {
+            if let Ok(b) = serde_json::to_vec(self) {
+                let _ = std::fs::write(wow.join(HASH_CACHE), b);
+            }
+        }
+    }
+
+    fn stamp(p: &Path) -> Option<(u64, u64, u32)> {
+        let m = std::fs::metadata(p).ok()?;
+        let t = m.modified().ok()?.duration_since(std::time::UNIX_EPOCH).ok()?;
+        Some((m.len(), t.as_secs(), t.subsec_nanos()))
+    }
+
+    /// The file's hash, if its size is `size` (other sizes cannot match, so they are not read).
+    fn sha256(&mut self, key: &str, p: &Path, size: u64) -> Option<String> {
+        let (len, s, ns) = Self::stamp(p)?;
+        if len != size {
+            return None;
+        }
+        if let Some(c) = self.files.get(&key.to_lowercase()) {
+            if (c.size, c.mtime_s, c.mtime_ns) == (len, s, ns) {
+                return Some(c.sha256.clone());
+            }
+        }
+        let h = file_sha256(p)?;
+        // the file must not have changed while it was read
+        if Self::stamp(p)? == (len, s, ns) {
+            self.files.insert(key.to_lowercase(), CachedHash { size: len, mtime_s: s, mtime_ns: ns, sha256: h.clone() });
+            self.dirty = true;
+        }
+        Some(h)
+    }
+
+    /// Records a file whose hash is already known (just downloaded and verified).
+    fn put(&mut self, key: &str, p: &Path, sha256: &str) {
+        if let Some((len, s, ns)) = Self::stamp(p) {
+            self.files.insert(key.to_lowercase(), CachedHash { size: len, mtime_s: s, mtime_ns: ns, sha256: sha256.into() });
+            self.dirty = true;
+        }
+    }
 }
 
 fn file_sha256(p: &Path) -> Option<String> {
@@ -294,6 +412,7 @@ async fn component_status(wow_dir: String, manifest: Manifest) -> Res<Vec<Compon
     tauri::async_runtime::spawn_blocking(move || {
         let wow = PathBuf::from(&wow_dir);
         let st = read_state(&wow);
+        let mut cache = HashCache::load(&wow);
         let mut out = Vec::new();
         for c in &manifest.components {
             let mut all_match = true;
@@ -302,9 +421,7 @@ async fn component_status(wow_dir: String, manifest: Manifest) -> Res<Vec<Compon
                 let p = safe_dest(&wow, &f.dest)?;
                 if p.exists() {
                     any_exists = true;
-                    // size first, then the hash (avoids reading big files needlessly)
-                    let same_size = std::fs::metadata(&p).map(|m| m.len() == f.size).unwrap_or(false);
-                    if !same_size || file_sha256(&p).as_deref() != Some(f.sha256.as_str()) {
+                    if cache.sha256(&f.dest, &p, f.size).as_deref() != Some(f.sha256.as_str()) {
                         all_match = false;
                     }
                 } else {
@@ -323,6 +440,7 @@ async fn component_status(wow_dir: String, manifest: Manifest) -> Res<Vec<Compon
             };
             out.push(ComponentStatus { id: c.id.clone(), status: status.into(), installed_version });
         }
+        cache.save(&wow);
         Ok(out)
     })
     .await
@@ -367,13 +485,47 @@ fn remove_dll_line(wow: &Path, line: &str) -> Res<()> {
 
 // ---------------------------------------------------------------- install / remove
 
+fn untested(f: &ManifestFile) -> String {
+    let who = if f.source.is_empty() { "The server".to_string() } else { f.source.clone() };
+    format!("{who} now has a different version of {} than the one HD Switch was tested with. \
+             It will be installable once the tested setup is updated.", f.asset)
+}
+
 async fn download<R: tauri::Runtime>(app: &AppHandle<R>, comp: &str, f: &ManifestFile, to: &Path) -> Res<()> {
     let c = client()?;
-    let resp = c.get(&f.url).send().await.map_err(err("download"))?.error_for_status().map_err(err("download"))?;
-    let total = resp.content_length().unwrap_or(f.size);
-    let mut out = tokio::fs::File::create(to).await.map_err(err("temporary file"))?;
+    // a partial download from an earlier attempt is continued, not restarted
+    let have = std::fs::metadata(to).map(|m| m.len()).unwrap_or(0);
+    let have = if have > 0 && have < f.size { have } else { 0 };
+    let mut req = c.get(&f.url);
+    if have > 0 {
+        req = req.header("Range", format!("bytes={have}-"));
+    }
+    let resp = req.send().await.map_err(err("download"))?.error_for_status().map_err(err("download"))?;
+    let resumed = have > 0 && resp.status() == reqwest::StatusCode::PARTIAL_CONTENT;
+    let total = if resumed {
+        resp.headers().get("content-range").and_then(|v| v.to_str().ok())
+            .and_then(|v| v.rsplit('/').next()).and_then(|v| v.parse::<u64>().ok()).unwrap_or(0)
+    } else {
+        resp.content_length().unwrap_or(0)
+    };
+    if total != f.size {
+        return Err(untested(f));
+    }
     let mut h = Sha256::new();
-    let mut done = 0u64;
+    let mut out = if resumed {
+        use std::io::Read;
+        let mut r = std::fs::File::open(to).map_err(err("temporary file"))?;
+        let mut buf = vec![0u8; 1 << 20];
+        loop {
+            let n = r.read(&mut buf).map_err(err("temporary file"))?;
+            if n == 0 { break; }
+            h.update(&buf[..n]);
+        }
+        tokio::fs::OpenOptions::new().append(true).open(to).await.map_err(err("temporary file"))?
+    } else {
+        tokio::fs::File::create(to).await.map_err(err("temporary file"))?
+    };
+    let mut done = if resumed { have } else { 0 };
     let mut last = 0u64;
     let mut stream = resp.bytes_stream();
     use tokio::io::AsyncWriteExt;
@@ -392,6 +544,9 @@ async fn download<R: tauri::Runtime>(app: &AppHandle<R>, comp: &str, f: &Manifes
     let got = hex::encode(h.finalize());
     if got != f.sha256 {
         let _ = std::fs::remove_file(to);
+        if !f.source.is_empty() {
+            return Err(untested(f));
+        }
         return Err(format!("'{}' failed verification (SHA-256 mismatch). The download may be damaged; try again.", f.asset));
     }
     Ok(())
@@ -403,9 +558,30 @@ async fn install<R: tauri::Runtime>(app: AppHandle<R>, wow_dir: String, componen
     if !is_wow_dir(&wow) {
         return Err("The game folder is not valid.".into());
     }
+    // files that are already exactly right are not downloaded again
+    let mut cache = HashCache::load(&wow);
+    let mut todo = Vec::new();
+    for f in &component.files {
+        let dest = safe_dest(&wow, &f.dest)?;
+        let ok = cache.sha256(&f.dest, &dest, f.size).as_deref() == Some(f.sha256.as_str());
+        if ok {
+            let _ = app.emit("progress", Progress { component: &component.id, file: &f.asset, done: f.size, total: f.size });
+        } else {
+            todo.push(f);
+        }
+    }
+    cache.save(&wow);
+    let need: u64 = todo.iter().map(|f| f.size).sum();
+    if let Some(free) = free_space(&wow) {
+        if free < need + 256 * 1024 * 1024 {
+            return Err(format!("Not enough disk space: {:.1} GB needed, {:.1} GB free.",
+                need as f64 / 1e9, free as f64 / 1e9));
+        }
+    }
     // download and verify everything first; then, if the game is closed, put it all in place
     let mut staged = Vec::new();
-    for f in &component.files {
+    let staged_files = todo.clone();
+    for f in todo {
         let dest = safe_dest(&wow, &f.dest)?;
         if let Some(d) = dest.parent() {
             std::fs::create_dir_all(d).map_err(err("could not create the folder"))?;
@@ -421,9 +597,8 @@ async fn install<R: tauri::Runtime>(app: AppHandle<R>, wow_dir: String, componen
         return Err("The game is running. Files cannot be changed while it runs; close the game and try again.".into());
     }
     let st0 = read_state(&wow);
-    let ours = st0.components.contains_key(&component.id);
-    for (part, dest) in &staged {
-        if dest.exists() && !ours {
+    for (f, (part, dest)) in staged_files.iter().zip(&staged) {
+        if dest.exists() && !is_placed(&st0, &f.dest) {
             // back up a file the installer did not put there, once, before replacing it
             let bak = PathBuf::from(format!("{}{BACKUP}", dest.to_string_lossy()));
             if !bak.exists() {
@@ -431,11 +606,27 @@ async fn install<R: tauri::Runtime>(app: AppHandle<R>, wow_dir: String, componen
             }
         }
         std::fs::rename(part, dest).map_err(err("could not put the file in place"))?;
+        cache.put(&f.dest, dest, &f.sha256);
     }
+    cache.save(&wow);
+    let mut st = read_state(&wow);
+    for f in &component.files {
+        let dest = safe_dest(&wow, &f.dest)?;
+        if staged.iter().any(|(_, d)| d == &dest) {
+            st.placed.insert(f.dest.clone());
+        }
+    }
+    write_state(&wow, &st)?;
     if let Some(line) = &component.dll_line {
         ensure_dll_line(&wow, line)?;
     }
     let mut st = read_state(&wow);
+    // installer 1.0 ids whose files are all part of this component are superseded by it
+    for (id, files) in LEGACY {
+        if *id != component.id && files.iter().all(|lf| component.files.iter().any(|f| f.dest.eq_ignore_ascii_case(lf))) {
+            st.components.remove(*id);
+        }
+    }
     st.components.insert(component.id.clone(), component.version.clone());
     write_state(&wow, &st)
 }
@@ -446,8 +637,14 @@ async fn uninstall(wow_dir: String, component: Component) -> Res<()> {
     if game_running() {
         return Err("The game is running. Close it and try again.".into());
     }
+    let st0 = read_state(&wow);
     for f in &component.files {
         let dest = safe_dest(&wow, &f.dest)?;
+        // a file that was already there before the installer (e.g. Project Reforged packs the
+        // player installed) is left alone
+        if !is_placed(&st0, &f.dest) {
+            continue;
+        }
         if dest.exists() {
             std::fs::remove_file(&dest).map_err(err("could not delete"))?;
         }
@@ -461,6 +658,9 @@ async fn uninstall(wow_dir: String, component: Component) -> Res<()> {
     }
     let mut st = read_state(&wow);
     st.components.remove(&component.id);
+    for f in &component.files {
+        st.placed.retain(|d| !d.eq_ignore_ascii_case(&f.dest));
+    }
     write_state(&wow, &st)
 }
 
@@ -475,7 +675,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_config, save_config, check_wow_dir, find_wow_dirs, game_running,
-            fetch_manifest, component_status, install, uninstall, conflicts
+            fetch_manifest, component_status, install, uninstall, unsupported_packs
         ])
         .run(tauri::generate_context!())
         .expect("could not start the application");
@@ -494,12 +694,14 @@ mod tests {
         let h = app.handle().clone();
         tauri::async_runtime::block_on(async move {
             let m = fetch_manifest().await.expect("manifest");
+            let later = ["broken", "external", "newer", "preinstalled"];
             for c in &m.components {
-                if c.id == "broken" { continue; }
+                if later.contains(&c.id.as_str()) { continue; }
                 install(h.clone(), wow.clone(), c.clone()).await.unwrap_or_else(|e| panic!("{}: {e}", c.id));
             }
             let st = component_status(wow.clone(), m.clone()).await.unwrap();
             for s in &st {
+                if later.contains(&s.id.as_str()) && s.id != "broken" { continue; }
                 let want = if s.id == "broken" { "missing" } else { "installed" };
                 assert_eq!(s.status, want, "{}", s.id);
             }
@@ -519,10 +721,35 @@ mod tests {
             let hd = m.components.iter().find(|c| c.id == "hdswitch").unwrap().clone();
             install(h.clone(), wow.clone(), hd.clone()).await.unwrap();
             assert_eq!(std::fs::read_to_string(Path::new(&wow).join("dlls.txt")).unwrap().matches("HDToggle").count(), 1);
+            // external file (own URL): installed, size-checked
+            let ext = m.components.iter().find(|c| c.id == "external").unwrap().clone();
+            // a partial earlier download is continued, not restarted
+            let d = Path::new(&wow).join(&ext.files[0].dest);
+            let part = PathBuf::from(format!("{}{PART}", d.to_string_lossy()));
+            let full = std::fs::read(std::env::var("HDI_TEST_EXT_FILE").unwrap()).unwrap();
+            std::fs::write(&part, &full[..full.len() / 3]).unwrap();
+            install(h.clone(), wow.clone(), ext.clone()).await.unwrap();
+            assert_eq!(std::fs::read(&d).unwrap(), full, "resumed download is byte-identical");
+            // a different upstream version is reported, nothing is placed
+            let newer = m.components.iter().find(|c| c.id == "newer").unwrap().clone();
+            let e = install(h.clone(), wow.clone(), newer.clone()).await.unwrap_err();
+            assert!(e.contains("different version"), "{e}");
+            assert!(!Path::new(&wow).join(&newer.files[0].dest).exists());
+            // a file that was already exactly right is not replaced and not removed later
+            let pre = m.components.iter().find(|c| c.id == "preinstalled").unwrap().clone();
+            let pd = Path::new(&wow).join(&pre.files[0].dest);
+            let before = std::fs::metadata(&pd).unwrap().modified().unwrap();
+            install(h.clone(), wow.clone(), pre.clone()).await.unwrap();
+            assert_eq!(std::fs::metadata(&pd).unwrap().modified().unwrap(), before, "identical file not rewritten");
+            // packs outside the supported setup are reported
+            let un = unsupported_packs(wow.clone(), m.clone());
+            assert_eq!(un, vec!["patch-L.mpq".to_string()], "{un:?}");
             // remove
-            for c in m.components.iter().filter(|c| c.id != "broken") {
+            for c in m.components.iter().filter(|c| c.id != "broken" && c.id != "newer") {
                 uninstall(wow.clone(), c.clone()).await.unwrap();
             }
+            assert!(pd.exists(), "a pack the player had before is left alone");
+            assert!(!d.exists(), "a pack the installer placed is removed");
             assert_eq!(std::fs::read(Path::new(&wow).join("Data/Patch-F.mpq")).unwrap(), b"USERS OLD FILE");
             assert!(!Path::new(&wow).join("mods/HDToggle.dll").exists());
             assert!(!std::fs::read_to_string(Path::new(&wow).join("dlls.txt")).unwrap().contains("HDToggle"));
@@ -562,5 +789,86 @@ mod tests {
         let t = std::fs::read_to_string(d.join("dlls.txt")).unwrap();
         assert!(!t.contains("HDToggle") && t.contains("VanillaHelpers"));
         std::fs::remove_dir_all(&d).unwrap();
+    }
+
+    fn sha_hex(b: &[u8]) -> String {
+        hex::encode(Sha256::digest(b))
+    }
+
+    #[test]
+    fn hash_cache_reuses_and_invalidates() {
+        let d = std::env::temp_dir().join(format!("hdi-cache-{}", std::process::id()));
+        std::fs::create_dir_all(d.join("mods")).unwrap();
+        let f = d.join("a.mpq");
+        std::fs::write(&f, b"first").unwrap();
+        let mut c = HashCache::default();
+        assert_eq!(c.sha256("A.mpq", &f, 5).unwrap(), sha_hex(b"first"));
+        assert_eq!(c.sha256("a.mpq", &f, 4), None, "a different size is not read");
+        c.save(&d);
+        // a cache entry is trusted while size and mtime match: poison it to prove it is used
+        let mut c = HashCache::load(&d);
+        c.files.get_mut("a.mpq").unwrap().sha256 = "cached".into();
+        assert_eq!(c.sha256("a.mpq", &f, 5).unwrap(), "cached");
+        // same size, new content and mtime: hashed again
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        std::fs::write(&f, b"other").unwrap();
+        assert_eq!(c.sha256("a.mpq", &f, 5).unwrap(), sha_hex(b"other"));
+        std::fs::remove_dir_all(&d).unwrap();
+    }
+
+    /// Installer 1.0 kept one component per pack and no list of placed files. Installing the
+    /// 1.2.1 bundle over it must not treat its own Patch-F as a foreign file, and a later
+    /// remove must delete it, while a pack the player had installed stays.
+    #[test]
+    fn upgrade_from_installer_1_0() {
+        let d = std::env::temp_dir().join(format!("hdi-legacy-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(d.join("Data")).unwrap();
+        std::fs::create_dir_all(d.join("mods")).unwrap();
+        std::fs::write(d.join("WoW.exe"), b"x").unwrap();
+        std::fs::write(d.join("Data/Patch-F.mpq"), b"female").unwrap();
+        std::fs::write(d.join("Data/patch-A.mpq"), b"reforged").unwrap();
+        std::fs::write(d.join(STATE_FILE), r#"{"components":{"female":"1.0.0","nude":"1.0.0"}}"#).unwrap();
+        let file = |n: &str, b: &[u8]| ManifestFile {
+            asset: n.into(), dest: format!("Data/{n}"), sha256: sha_hex(b), size: b.len() as u64,
+            url: String::new(), source: String::new(),
+        };
+        let hd = Component {
+            id: "packs".into(), name: "OctoWoW HD packs".into(), version: "1.2.1".into(),
+            description: String::new(), nsfw: false, credits: String::new(), dll_line: None,
+            files: vec![file("Patch-F.mpq", b"female"), file("patch-A.mpq", b"reforged")],
+        };
+        // SAFETY: tests in this module that read the variable do not depend on it being unset
+        unsafe { std::env::set_var("HDI_TEST_NO_GAME", "1") };
+        let app = tauri::test::mock_app();
+        let wow = d.to_string_lossy().to_string();
+        tauri::async_runtime::block_on(install(app.handle().clone(), wow.clone(), hd.clone())).unwrap();
+        assert!(!d.join("Data/Patch-F.mpq.hdi-backup").exists(), "own file was backed up");
+        let st = read_state(&d);
+        assert_eq!(st.components.keys().collect::<Vec<_>>(), ["nude", "packs"]);
+        assert!(is_placed(&st, "Data/Patch-F.mpq") && is_placed(&st, "Data/Patch-Y.mpq"));
+        assert!(!is_placed(&st, "Data/patch-A.mpq"));
+        tauri::async_runtime::block_on(uninstall(wow, hd)).unwrap();
+        assert!(!d.join("Data/Patch-F.mpq").exists());
+        assert!(d.join("Data/patch-A.mpq").exists(), "the player's own pack was removed");
+        std::fs::remove_dir_all(&d).unwrap();
+    }
+
+    /// Downloads the smallest Project Reforged pack of the real manifest from Project Reforged's
+    /// server and checks it. Network; run by hand: cargo test real_reforged -- --ignored
+    #[test]
+    #[ignore]
+    fn real_reforged_download() {
+        let app = tauri::test::mock_app();
+        let h = app.handle().clone();
+        tauri::async_runtime::block_on(async move {
+            let m = fetch_manifest().await.expect("manifest");
+            let f = m.components.iter().flat_map(|c| &c.files).filter(|f| !f.source.is_empty())
+                .min_by_key(|f| f.size).expect("a Project Reforged file").clone();
+            let to = std::env::temp_dir().join(format!("hdi-real-{}", std::process::id()));
+            download(&h, "packs", &f, &to).await.expect("download");
+            assert_eq!(std::fs::metadata(&to).unwrap().len(), f.size);
+            std::fs::remove_file(&to).unwrap();
+        });
     }
 }
