@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Sürüm klasöründen GitHub'a yüklenecek dosyaları ve manifest.json'u üretir.
+"""Builds the files to upload to a GitHub release, and manifest.json, from a release folder.
 
-kullanım: surum_hazirla.py <sürüm klasörü> <sürüm etiketi> [notlar.md]
-Klasörde beklenen: OctoWoW-HD-Switch-v<x>/ (mods/, Interface/), Patch-F.mpq, Patch-H.mpq, Patch-Y.mpq
-Çıktı: <klasör>/upload/ (manifest.json + yüklenecek her dosya, düz adlarla) ve HD Switch zip'i.
+usage: make_release.py <release folder> <tag> [notes.md]
+Expected in the folder: OctoWoW-HD-Switch-v<x>/ (mods/, Interface/), Patch-F.mpq, Patch-H.mpq, Patch-Y.mpq
+Output: <folder>/upload/ (manifest.json plus every file to upload, flat names) and the HD Switch zip.
+Credits come from the CREDIT_FEMALE, CREDIT_TREES and CREDIT_NUDE environment variables.
 """
 import hashlib, json, os, shutil, sys, zipfile
 
@@ -64,7 +65,7 @@ components = [
 json.dump({"release": TAG, "notes": NOTES, "components": components},
           open(os.path.join(OUT, "manifest.json"), "w"), indent=1, ensure_ascii=False)
 
-# elle kurulum için HD Switch zip'i (önceki sürümlerle aynı yapı)
+# HD Switch zip for manual installs (same layout as earlier releases)
 z = os.path.join(OUT, f"OctoWoW-HD-Switch-{TAG}.zip")
 with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
     for root, _, files in os.walk(hs):
@@ -76,4 +77,4 @@ with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
 
 for c in components:
     print(f"{c['id']:9} {sum(f['size'] for f in c['files']) / 1048576:7.1f} MB  {len(c['files'])} dosya")
-print("çıktı:", OUT)
+print("output:", OUT)
