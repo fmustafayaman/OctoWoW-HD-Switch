@@ -235,6 +235,15 @@ are not changed by HD Switch; they stay installed exactly as they were.
 
 ## Changelog
 
+**1.2.3**
+- Fixed a crash at the character select screen with `patch-T` on some PCs (ERROR #132,
+  access violation at `0x0044B06B`). With 2× or 4× skins the game's texture pool, which
+  only has slots for textures up to 256 pixels, was given the larger skin canvas and wrote
+  outside its table. HD Switch now keeps the pool's size limit at the game's own value, so
+  the skin canvas is allocated directly, as the game does whenever the pool is empty.
+- HD Switch's version now matches the release, so the game no longer says a newer version
+  is available when you already have the latest one.
+
 **1.2.2**
 - The invisible tree fix is now **OctoWoW HD fixes** (`Patch-H`): every defect a check of all
   models, buildings and terrain in the supported setup found, fixed (see
