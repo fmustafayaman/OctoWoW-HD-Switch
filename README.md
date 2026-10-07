@@ -70,8 +70,10 @@ byte for byte. The installer checks every file's SHA-256.
 | `patch-T.mpq` | Project Reforged – HD Character Textures & Gear (Standard) | 5.5.0 | Project Reforged |
 | `patch-O.mpq` | Twow Raid Visuals with OctoWoW's own spell tables | 1.4.18 | this repository's releases |
 | `patch-Z.mpq` | Merged game tables (DBC) of the packs above | – | this repository's releases |
-| `Patch-F.mpq` | Female models (see [the packs we modified](#packs-we-modified)) | 1.0.0 | this repository's releases |
+| `Patch-F.mpq` | Little Extra Less: female models, slimmer (see [the packs we modified](#packs-we-modified)) | 1.0.0 | this repository's releases |
 | `Patch-H.mpq` | OctoWoW HD fixes (see [OctoWoW HD fixes](#octowow-hd-fixes)) | 1.2.2 | this repository's releases |
+| `Patch-X.mpq` | Little Extra: full female models, **optional**, loads over Little Extra Less (`Patch-F`) | 1.0.0 | this repository's releases |
+| `Patch-W.mpq` | Bikini armor, **optional** | 1.0.0 | this repository's releases |
 | `Patch-Y.mpq` | Nude skins, 18+, **optional** | 1.0.0 | this repository's releases |
 
 The Project Reforged packs are downloaded **from Project Reforged's own server**, not
@@ -98,7 +100,8 @@ Download **OctoWoW HD Installer** from [Releases](../../releases):
 for macOS (Apple Silicon).
 
 It finds your OctoWoW folder (or lets you pick it), then installs, updates and removes
-HD Switch, the [OctoWoW HD packs](#supported-setup) and the optional 18+ skins with one click.
+HD Switch, the [OctoWoW HD packs](#supported-setup) and the optional packs (Little Extra,
+bikini armor, 18+ skins) with one click.
 HD Switch can also be installed on its own. Packs you already have in the right version
 are not downloaded again, an interrupted download continues where it stopped, and
 **Remove** only deletes files the installer put there. Every file is checked
@@ -147,13 +150,15 @@ Your choice is saved in `mods\HDToggle.ini`.
 
 ## Packs we modified
 
-`Patch-F`, `Patch-H` and `Patch-Y` are **modified versions of other people's work**. All credit for the models and
+`Patch-F`, `Patch-H`, `Patch-X`, `Patch-W` and `Patch-Y` are **modified versions of other people's work**. All credit for the models and
 textures goes to their authors; the changes listed below are the only parts made for
 HD Switch. Please support the original projects.
 
 | Pack | Based on | What was changed |
 |---|---|---|
-| **Female models** (`Data\Patch-F.mpq`) | *A Little Extra for Females*, **Less Thicc Version** by **Deezhugs**, built on *A Little Extra* by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | Night Elf and Human heads re-mapped to OctoWoW's HD face textures (the originals were mapped for another texture set and looked broken). High Elves get OctoWoW's original eye glow back. Troll models unchanged. |
+| **Little Extra Less** (`Data\Patch-F.mpq`) | *A Little Extra for Females*, **Less Thicc Version** by **Deezhugs**, built on *A Little Extra* by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | Night Elf and Human heads re-mapped to OctoWoW's HD face textures (the originals were mapped for another texture set and looked broken). High Elves get OctoWoW's original eye glow back. Troll models unchanged. |
+| **Little Extra** (`Data\Patch-X.mpq`) | *A Little Extra* **0.9.9.5** by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | The same changes as Little Extra Less: Night Elf and Human heads re-mapped to OctoWoW's HD face textures, High Elves get OctoWoW's original eye glow back, Troll models unchanged. Renamed from `Patch-F` so both can be installed; as a later letter it loads over Little Extra Less. |
+| **Bikini armor** (`Data\Patch-W.mpq`) | The bikini pack of *A Little Extra* **0.9.9.5** by **Watchers3D** (published there as `Patch-Y`) | Renamed to `Patch-W` (it would clash with the nude skins) and its `VanillaHelpers\ResizeCharacterSkin.txt` (4×) removed: HD Switch takes the skin scale from the skin packs and fits these 4× textures itself, while the marker would force 4× skin layout over the 2× skins. Textures unchanged. The unisex (`_U`) textures in it show on men too, as in the original. |
 | **OctoWoW HD fixes** (`Data\Patch-H.mpq`) | Models from **Project Reforged** *Patch-A, C, D and G*, and original game models | Corrected copies of the HD pack files listed in [OctoWoW HD fixes](#octowow-hd-fixes) below; nothing else changed. |
 | **Nude skins, 18+** (`Data\Patch-Y.mpq`) | *A Little Extra Retextured* by **Necropheus**, upscaled for HD Reforged | The torso and pelvis parts of Forest Troll skin color 4 were missing (the HD underwear showed through with a different chest color). They were rebuilt from the same pack's skin texture. |
 
@@ -234,6 +239,14 @@ Remove the `mods/HDToggle.dll` line from `dlls.txt`. Then delete `mods\HDToggle.
 are not changed by HD Switch; they stay installed exactly as they were.
 
 ## Changelog
+
+**1.2.4**
+- Two new optional packs in the installer: **Little Extra** (`Patch-X`, the original
+  *A Little Extra* bodies instead of the slimmer Little Extra Less, faces fitted to the HD textures) and
+  **Bikini armor** (`Patch-W`). Both can be added or removed on their own; removing Little Extra
+  brings Little Extra Less back. The nude skins (18+) stay optional as before.
+- HD Switch names the Little Extra, Little Extra Less, bikini and nude skin packs in its panel, and
+  pointing at a pack whose name is not enough explains what it does.
 
 **1.2.3**
 - Fixed a crash at the character select screen with `patch-T` on some PCs (ERROR #132,

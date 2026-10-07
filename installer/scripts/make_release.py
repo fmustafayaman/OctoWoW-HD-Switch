@@ -8,6 +8,8 @@ Expected in the folder:
   Patch-F.mpq, Patch-H.mpq     female models, OctoWoW HD fixes
   patch-O.mpq, patch-Z.mpq     Twow Raid Visuals with OctoWoW's tables, DBC merge
   Patch-Y.mpq                  nude skins (18+)
+  Patch-X.mpq                  optional: full (not "less") A Little Extra female models, loads over Patch-F
+  Patch-W.mpq                  optional: bikini armor textures (A Little Extra's own Patch-Y, renamed)
   project-reforged.json        {letter: {url, sha256, size}} of the Project Reforged packs
                                in the supported setup, checked byte for byte against their server
 
@@ -84,6 +86,22 @@ components = [
         "credits": "A Little Extra Retextured by Necropheus. Missing Forest Troll parts added by HD Switch.",
         "files": [add("Patch-Y.mpq", os.path.join(SRC, "Patch-Y.mpq"), "Data/Patch-Y.mpq")],
     },
+    {
+        "id": "female-full", "name": "Little Extra", "version": "1.0.0",
+        "description": "The original A Little Extra bodies for Night Elf, Human, Troll and High Elf women instead of "
+                       "the slimmer Little Extra Less ones in the OctoWoW HD packs, with the faces fitted to the HD textures. "
+                       "Remove it to go back to Little Extra Less.",
+        "credits": "A Little Extra by Watchers3D (High Elf animations by Starrfury).",
+        "files": [add("Patch-X.mpq", os.path.join(SRC, "Patch-X.mpq"), "Data/Patch-X.mpq")],
+    },
+    {
+        "id": "bikini", "name": "Bikini armor", "version": "1.0.0",
+        "description": "Revealing versions of many chest and leg armor textures, 4× resolution. Female textures, "
+                       "plus a few unisex ones (Bloodfang sleeves and pants, some leather chests and pants) "
+                       "that also show on men.",
+        "credits": "A Little Extra by Watchers3D.",
+        "files": [add("Patch-W.mpq", os.path.join(SRC, "Patch-W.mpq"), "Data/Patch-W.mpq")],
+    },
 ]
 
 dests = [f["dest"].lower() for c in components for f in c["files"]]
@@ -97,7 +115,7 @@ json.dump({"release": TAG, "notes": NOTES, "components": components},
 own = {f["dest"].lower(): f for c in components for f in c["files"] if not f.get("url")}
 legacy = [
     dict(components[0], description=components[0]["description"].split(" It works")[0]),
-    {"id": "female", "name": "Female models", "version": "1.0.0",
+    {"id": "female", "name": "Little Extra Less", "version": "1.0.0",
      "description": "Slimmer female models for Night Elf, Human, Troll and High Elf, fitted to the HD textures.",
      "credits": "A Little Extra for Females, Less Thicc Version by Deezhugs, on Watchers3D's A Little Extra.",
      "files": [own["data/patch-f.mpq"]]},
