@@ -87,7 +87,7 @@ components = [
         "files": [add("Patch-Y.mpq", os.path.join(SRC, "Patch-Y.mpq"), "Data/Patch-Y.mpq")],
     },
     {
-        "id": "female-full", "name": "Little Extra", "version": "1.0.0",
+        "id": "female-full", "name": "Little Extra", "version": "1.1.0",
         "description": "The original A Little Extra bodies for Night Elf, Human, Troll and High Elf women instead of "
                        "the slimmer Little Extra Less ones in the OctoWoW HD packs, with the faces fitted to the HD textures. "
                        "Remove it to go back to Little Extra Less.",
@@ -115,7 +115,7 @@ json.dump({"release": TAG, "notes": NOTES, "components": components},
 own = {f["dest"].lower(): f for c in components for f in c["files"] if not f.get("url")}
 legacy = [
     dict(components[0], description=components[0]["description"].split(" It works")[0]),
-    {"id": "female", "name": "Little Extra Less", "version": "1.0.0",
+    {"id": "female", "name": "Little Extra Less", "version": "1.1.0",
      "description": "Slimmer female models for Night Elf, Human, Troll and High Elf, fitted to the HD textures.",
      "credits": "A Little Extra for Females, Less Thicc Version by Deezhugs, on Watchers3D's A Little Extra.",
      "files": [own["data/patch-f.mpq"]]},

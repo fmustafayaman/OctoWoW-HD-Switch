@@ -156,8 +156,8 @@ HD Switch. Please support the original projects.
 
 | Pack | Based on | What was changed |
 |---|---|---|
-| **Little Extra Less** (`Data\Patch-F.mpq`) | *A Little Extra for Females*, **Less Thicc Version** by **Deezhugs**, built on *A Little Extra* by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | Night Elf and Human heads re-mapped to OctoWoW's HD face textures (the originals were mapped for another texture set and looked broken). High Elves get OctoWoW's original eye glow back. Troll models unchanged. |
-| **Little Extra** (`Data\Patch-X.mpq`) | *A Little Extra* **0.9.9.5** by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | The same changes as Little Extra Less: Night Elf and Human heads re-mapped to OctoWoW's HD face textures, High Elves get OctoWoW's original eye glow back, Troll models unchanged. Renamed from `Patch-F` so both can be installed; as a later letter it loads over Little Extra Less. |
+| **Little Extra Less** (`Data\Patch-F.mpq`) | *A Little Extra for Females*, **Less Thicc Version** by **Deezhugs**, built on *A Little Extra* by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | Night Elf and Human heads re-mapped to OctoWoW's HD face textures (the originals were mapped for another texture set and looked broken). The hairstyles OctoWoW added (Human styles 19-23, Night Elf 7-11) taken from OctoWoW's own models, so they no longer all look like the same short hair. High Elf eye glow rebuilt: the eyes themselves glow in the High Elf blue, with a soft glow on the skin around them, and the light fades as the eyelids close (timed like the Night Elf glow). Troll models unchanged. |
+| **Little Extra** (`Data\Patch-X.mpq`) | *A Little Extra* **0.9.9.5** by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | The same changes as Little Extra Less: Night Elf and Human heads re-mapped to OctoWoW's HD face textures, OctoWoW's added hairstyles, the rebuilt High Elf eye glow, Troll models unchanged. Renamed from `Patch-F` so both can be installed; as a later letter it loads over Little Extra Less. |
 | **Bikini armor** (`Data\Patch-W.mpq`) | The bikini pack of *A Little Extra* **0.9.9.5** by **Watchers3D** (published there as `Patch-Y`) | Renamed to `Patch-W` (it would clash with the nude skins) and its `VanillaHelpers\ResizeCharacterSkin.txt` (4×) removed: HD Switch takes the skin scale from the skin packs and fits these 4× textures itself, while the marker would force 4× skin layout over the 2× skins. Textures unchanged. The unisex (`_U`) textures in it show on men too, as in the original. |
 | **OctoWoW HD fixes** (`Data\Patch-H.mpq`) | Models from **Project Reforged** *Patch-A, C, D and G*, and original game models | Corrected copies of the HD pack files listed in [OctoWoW HD fixes](#octowow-hd-fixes) below; nothing else changed. |
 | **Nude skins, 18+** (`Data\Patch-Y.mpq`) | *A Little Extra Retextured* by **Necropheus**, upscaled for HD Reforged | The torso and pelvis parts of Forest Troll skin color 4 were missing (the HD underwear showed through with a different chest color). They were rebuilt from the same pack's skin texture. |
@@ -239,6 +239,17 @@ Remove the `mods/HDToggle.dll` line from `dlls.txt`. Then delete `mods\HDToggle.
 are not changed by HD Switch; they stay installed exactly as they were.
 
 ## Changelog
+
+**1.2.5**
+- Little Extra and Little Extra Less: the hairstyles OctoWoW added (Human styles 19-23,
+  Night Elf 7-11) were missing from these models and all showed as the same short hair.
+  They are now taken from OctoWoW's own models. With them the Human model needed more
+  triangles than the game can address in one list (it keeps each part's start in 16 bits),
+  so the parts are ordered to stay under that limit.
+- High Elf eye glow rebuilt in both packs: the eyes themselves glow in the High Elf blue
+  (no more opaque blue eyeball next to the light), with a soft glow on the skin around them
+  instead of a floating light card, so it looks right from the side too. The glow fades as
+  the eyelids close, timed like the Night Elf glow, and no longer dims by itself while the eyes are open.
 
 **1.2.4**
 - Two new optional packs in the installer: **Little Extra** (`Patch-X`, the original
