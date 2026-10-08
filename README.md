@@ -90,6 +90,9 @@ that replaces the standard `patch-T.mpq`; the installer swaps T in and back out 
 
 Ultra HD needs noticeably more video memory than the standard set.
 
+**Every file of the current release, with its size, SHA-256 and a download link:**
+[OctoWoW HD files](https://pub-a854abaa40ad406a86b1fc6390dd259c.r2.dev/index.html).
+
 The Project Reforged packs are downloaded **from Project Reforged's own server**, not
 re-hosted here; only the files that do not exist upstream in this exact form are part of
 the releases. If Project Reforged publishes a new version of one of them, the installer
