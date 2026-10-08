@@ -33,6 +33,9 @@ the world, spell effects and sounds all switch live.
   another resolution are scaled to fit their place on the body.
 - **Works with OctoWoW's fallback login addresses:** a bare IP in `realmlist.wtf` is
   accepted as long as the selected realm is one of OctoWoW's.
+- **Pack check:** `/hd check` (or **Check my packs** in the panel) compares every letter pack
+  in your Data folder with the supported OctoWoW HD packs, byte for byte, and lists what is
+  missing, in another version or not part of the set. Run it first when something looks wrong.
 - **Key bindings and slash commands.**
 
 ## Requirements
@@ -70,11 +73,22 @@ byte for byte. The installer checks every file's SHA-256.
 | `patch-T.mpq` | Project Reforged – HD Character Textures & Gear (Standard) | 5.5.0 | Project Reforged |
 | `patch-O.mpq` | Twow Raid Visuals with OctoWoW's own spell tables | 1.4.18 | this repository's releases |
 | `patch-Z.mpq` | Merged game tables (DBC) of the packs above | – | this repository's releases |
-| `Patch-F.mpq` | Little Extra Less: female models, slimmer (see [the packs we modified](#packs-we-modified)) | 1.0.0 | this repository's releases |
+| `Patch-F.mpq` | Little Extra Less: female models, slimmer (see [the packs we modified](#packs-we-modified)) | 1.2.0 | this repository's releases |
 | `Patch-H.mpq` | OctoWoW HD fixes (see [OctoWoW HD fixes](#octowow-hd-fixes)) | 1.2.2 | this repository's releases |
-| `Patch-X.mpq` | Little Extra: full female models, **optional**, loads over Little Extra Less (`Patch-F`) | 1.0.0 | this repository's releases |
+| `Patch-X.mpq` | Little Extra: full female models, **optional**, loads over Little Extra Less (`Patch-F`) | 1.2.0 | this repository's releases |
 | `Patch-W.mpq` | Bikini armor, **optional** | 1.0.0 | this repository's releases |
 | `Patch-Y.mpq` | Nude skins, 18+, **optional** | 1.0.0 | this repository's releases |
+
+**Ultra HD (optional).** Project Reforged's 4× character textures. They come as a set of three
+that replaces the standard `patch-T.mpq`; the installer swaps T in and back out by itself:
+
+| File | Pack | Version | Comes from |
+|---|---|---|---|
+| `patch-T.mpq` | Project Reforged – HD Character & Gear Textures (**Ultra-base**), in place of the standard T | 5.5.0 | Project Reforged |
+| `patch-U.mpq` | Project Reforged – Ultra HD Character Textures & Gear | 5.4.0 | Project Reforged |
+| `Patch-V.mpq` | Fixes for Ultra HD (see [the packs we modified](#packs-we-modified)) | 1.0.0 | this repository's releases |
+
+Ultra HD needs noticeably more video memory than the standard set.
 
 The Project Reforged packs are downloaded **from Project Reforged's own server**, not
 re-hosted here; only the files that do not exist upstream in this exact form are part of
@@ -84,7 +98,9 @@ stops and says so instead of installing a version HD Switch was not tested with.
 **Other packs.** HD Switch can be installed on its own and it lists and toggles any
 `patch-<letter>.mpq`, but with other packs or other versions there is no guarantee that
 everything looks and works right, and problems that only happen with them cannot be
-fixed here. The installer lists any extra letter packs in your Data folder.
+fixed here. The installer's **Setup check** and HD Switch's `/hd check` show whether your
+packs are exactly the supported ones, standard or Ultra HD, and list anything missing, in
+another version or extra.
 
 **Other mods loaded at the same time:** VanillaFixes, VanillaHelpers, nampower,
 transmogfix, UnitXP_SP3, VanillaMultiMonitorFix.
@@ -101,7 +117,9 @@ for macOS (Apple Silicon).
 
 It finds your OctoWoW folder (or lets you pick it), then installs, updates and removes
 HD Switch, the [OctoWoW HD packs](#supported-setup) and the optional packs (Little Extra,
-bikini armor, 18+ skins) with one click.
+bikini armor, 18+ skins, Ultra HD) with one click. Its **Setup check** at the top tells you
+whether your Data folder is exactly the supported setup (Standard HD with the full T, or Ultra HD
+with U and its Ultra-base T) and names every file that is missing, in another version or extra.
 HD Switch can also be installed on its own. Packs you already have in the right version
 are not downloaded again, an interrupted download continues where it stopped, and
 **Remove** only deletes files the installer put there. Every file is checked
@@ -139,6 +157,7 @@ When it is running you will see the HD Switch button on the minimap, and an
 | Drag the minimap button | Moves it around the minimap |
 | `/hd` | Opens the panel |
 | `/hd on` · `/hd off` · `/hd toggle` | Turn on · turn off · toggle |
+| `/hd check` · panel: **Check my packs** | Compares your packs with the supported OctoWoW HD packs (the first check reads every pack once, about a minute; later checks are instant) |
 | Key Bindings → **HD Switch** | Bind keys to the toggle and the panel |
 | Character select / create: **HD: On** button | All packs off / on, the character on screen is rebuilt |
 
@@ -150,15 +169,16 @@ Your choice is saved in `mods\HDToggle.ini`.
 
 ## Packs we modified
 
-`Patch-F`, `Patch-H`, `Patch-X`, `Patch-W` and `Patch-Y` are **modified versions of other people's work**. All credit for the models and
+`Patch-F`, `Patch-H`, `Patch-V`, `Patch-X`, `Patch-W` and `Patch-Y` are **modified versions of other people's work**. All credit for the models and
 textures goes to their authors; the changes listed below are the only parts made for
 HD Switch. Please support the original projects.
 
 | Pack | Based on | What was changed |
 |---|---|---|
-| **Little Extra Less** (`Data\Patch-F.mpq`) | *A Little Extra for Females*, **Less Thicc Version** by **Deezhugs**, built on *A Little Extra* by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | Night Elf and Human heads re-mapped to OctoWoW's HD face textures (the originals were mapped for another texture set and looked broken). The hairstyles OctoWoW added (Human styles 19-23, Night Elf 7-11) taken from OctoWoW's own models, so they no longer all look like the same short hair. High Elf eye glow rebuilt: the eyes themselves glow in the High Elf blue, with a soft glow on the skin around them, and the light fades as the eyelids close (timed like the Night Elf glow). Troll models unchanged. |
-| **Little Extra** (`Data\Patch-X.mpq`) | *A Little Extra* **0.9.9.5** by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | The same changes as Little Extra Less: Night Elf and Human heads re-mapped to OctoWoW's HD face textures, OctoWoW's added hairstyles, the rebuilt High Elf eye glow, Troll models unchanged. Renamed from `Patch-F` so both can be installed; as a later letter it loads over Little Extra Less. |
+| **Little Extra Less** (`Data\Patch-F.mpq`) | *A Little Extra for Females*, **Less Thicc Version** by **Deezhugs**, built on *A Little Extra* by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | Night Elf and Human heads re-mapped to OctoWoW's HD face textures (the originals were mapped for another texture set and looked broken). The hairstyles OctoWoW added (Human styles 19-23, Night Elf 7-11) taken from OctoWoW's own models, so they no longer all look like the same short hair. High Elf eye glow rebuilt: the eyes themselves glow in the High Elf blue, with a soft glow on the skin around them, and the light fades as the eyelids close (timed like the Night Elf glow). Human: the animation events the original model had lost (37 animations: mining, fishing, sitting, emote sounds) restored from OctoWoW's HD Human. Troll models unchanged. |
+| **Little Extra** (`Data\Patch-X.mpq`) | *A Little Extra* **0.9.9.5** by **Watchers3D** (High Elf animations and weapon scaling by **Starrfury**) | The same changes as Little Extra Less: Night Elf and Human heads re-mapped to OctoWoW's HD face textures, OctoWoW's added hairstyles, the rebuilt High Elf eye glow, the Human animation events restored, Troll models unchanged. Renamed from `Patch-F` so both can be installed; as a later letter it loads over Little Extra Less. |
 | **Bikini armor** (`Data\Patch-W.mpq`) | The bikini pack of *A Little Extra* **0.9.9.5** by **Watchers3D** (published there as `Patch-Y`) | Renamed to `Patch-W` (it would clash with the nude skins) and its `VanillaHelpers\ResizeCharacterSkin.txt` (4×) removed: HD Switch takes the skin scale from the skin packs and fits these 4× textures itself, while the marker would force 4× skin layout over the 2× skins. Textures unchanged. The unisex (`_U`) textures in it show on men too, as in the original. |
+| **Fixes for Ultra HD** (`Data\Patch-V.mpq`) | Textures from **Project Reforged** *patch-T 5.5.0 (Standard)* | 25 goblin textures copied unchanged. In `patch-U` they lost their transparency and covered the face in black: male goblins with hair styles 2, 3 and 9 or features 5-9, and a hard edge at the female goblins' hairline. Loads over `patch-U`; with HD Switch it turns off together with U. |
 | **OctoWoW HD fixes** (`Data\Patch-H.mpq`) | Models from **Project Reforged** *Patch-A, C, D and G*, and original game models | Corrected copies of the HD pack files listed in [OctoWoW HD fixes](#octowow-hd-fixes) below; nothing else changed. |
 | **Nude skins, 18+** (`Data\Patch-Y.mpq`) | *A Little Extra Retextured* by **Necropheus**, upscaled for HD Reforged | The torso and pelvis parts of Forest Troll skin color 4 were missing (the HD underwear showed through with a different chest color). They were rebuilt from the same pack's skin texture. |
 
@@ -213,6 +233,9 @@ differently, please open an issue and it will be done right away.
   in `dlls.txt` and that you restarted the game after installing.
 - **"HD Switch works on OctoWoW only":** you are not connected to OctoWoW (or picked a
   realm that is not OctoWoW's). Every pack stays on.
+- **Something looks wrong or sounds missing:** run `/hd check` (or the installer's Setup check)
+  first. A pack in another version, a missing one or an extra one causes most reports; the
+  installer puts the supported files in place.
 - **Something looks wrong after a toggle:** `mods\HDToggle.log` describes every toggle
   (what was rebuilt, what was skipped and why). Please attach it, together with the
   newest file in your game's `Errors` folder if the game crashed, when you report a
@@ -239,6 +262,23 @@ Remove the `mods/HDToggle.dll` line from `dlls.txt`. Then delete `mods\HDToggle.
 are not changed by HD Switch; they stay installed exactly as they were.
 
 ## Changelog
+
+**1.2.6**
+- **Ultra HD** in the installer, optional: Project Reforged's 4× character textures (`patch-U`)
+  with its Ultra-base T in place of the standard T, plus **Fixes for Ultra HD** (`Patch-V`). The
+  installer swaps the two T versions by itself; removing Ultra HD puts the standard T back.
+- Fixes for Ultra HD: in `patch-U` 25 goblin textures lost their transparency, which turned
+  male goblin faces black with hair styles 2, 3 and 9 or features 5-9 and gave the female
+  goblins' hairline a hard edge. `Patch-V` brings back the versions of the standard set.
+- Little Extra and Little Extra Less: the Human female model had lost the animation events of
+  37 animations, so mining, fishing, sitting and many emotes made no sound. They are restored
+  from OctoWoW's HD Human model.
+- **Pack check:** `/hd check` or **Check my packs** in the HD Switch panel compares every letter
+  pack in your Data folder with the supported packs (SHA-256, computed in the background and
+  remembered while a file does not change) and names what is missing, different or extra.
+- Installer 1.2.0: a **Setup check** at the top (Standard HD or Ultra HD, and every file that is
+  missing, in another version or not part of the set).
+- HD Switch names `patch-U` and `Patch-V` in its panel; turning U off turns its fixes off too.
 
 **1.2.5**
 - Little Extra and Little Extra Less: the hairstyles OctoWoW added (Human styles 19-23,
